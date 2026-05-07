@@ -1,3 +1,6 @@
+# Sales Analytics Master SQL Query
+
+```sql
 /* =========================================================
    SALES ANALYTICS MASTER QUERY
    ========================================================= */
@@ -5,28 +8,45 @@
 -- =========================================================
 -- 1. COMBINE MULTI-YEAR ORDER DATA
 -- =========================================================
+
 WITH all_orders AS (
 
-    SELECT order_id, customer_id, product_id,
-           order_date, quantity, revenue, cogs
+    SELECT order_id,
+           customer_id,
+           product_id,
+           order_date,
+           quantity,
+           revenue,
+           cogs
     FROM orders_2023
 
     UNION ALL
 
-    SELECT order_id, customer_id, product_id,
-           order_date, quantity, revenue, cogs
+    SELECT order_id,
+           customer_id,
+           product_id,
+           order_date,
+           quantity,
+           revenue,
+           cogs
     FROM orders_2024
 
     UNION ALL
 
-    SELECT order_id, customer_id, product_id,
-           order_date, quantity, revenue, cogs
+    SELECT order_id,
+           customer_id,
+           product_id,
+           order_date,
+           quantity,
+           revenue,
+           cogs
     FROM orders_2025
 ),
 
 -- =========================================================
 -- 2. REMOVE INVALID / DUPLICATE RECORDS
 -- =========================================================
+
 clean_orders AS (
 
     SELECT DISTINCT *
@@ -39,6 +59,7 @@ clean_orders AS (
 -- =========================================================
 -- 3. ENRICH DATA USING DIMENSION TABLES
 -- =========================================================
+
 enriched_orders AS (
 
     SELECT
@@ -70,6 +91,7 @@ enriched_orders AS (
 -- =========================================================
 -- 4. FEATURE ENGINEERING & DATA CLEANING
 -- =========================================================
+
 transformed_data AS (
 
     SELECT
@@ -80,12 +102,18 @@ transformed_data AS (
         order_date,
 
         -- WEEK START DATE
-        DATEADD(WEEK, DATEDIFF(WEEK, 0, order_date), 0) AS week_date,
+        DATEADD(WEEK, DATEDIFF(WEEK, 0, order_date), 0)
+            AS week_date,
 
         -- MONTH & YEAR EXTRACTION
-        DATENAME(MONTH, order_date) AS order_month,
-        YEAR(order_date) AS order_year,
-        DATEPART(QUARTER, order_date) AS order_quarter,
+        DATENAME(MONTH, order_date)
+            AS order_month,
+
+        YEAR(order_date)
+            AS order_year,
+
+        DATEPART(QUARTER, order_date)
+            AS order_quarter,
 
         quantity,
 
@@ -125,13 +153,20 @@ transformed_data AS (
         2) AS profit_margin_pct,
 
         -- CUSTOMER TENURE
-        DATEDIFF(DAY, customer_join_date, order_date)
-            AS customer_tenure_days,
+        DATEDIFF(
+            DAY,
+            customer_join_date,
+            order_date
+        ) AS customer_tenure_days,
 
         -- CUSTOMER SEGMENTATION
         CASE
-            WHEN quantity >= 10 THEN 'Bulk Buyer'
-            WHEN quantity >= 5 THEN 'Medium Buyer'
+            WHEN quantity >= 10
+                THEN 'Bulk Buyer'
+
+            WHEN quantity >= 5
+                THEN 'Medium Buyer'
+
             ELSE 'Low Buyer'
         END AS customer_segment,
 
@@ -147,6 +182,7 @@ transformed_data AS (
 -- =========================================================
 -- 5. ADVANCED ANALYTICS USING WINDOW FUNCTIONS
 -- =========================================================
+
 final_dataset AS (
 
     SELECT
@@ -155,23 +191,24 @@ final_dataset AS (
 
         -- RUNNING REVENUE
         SUM(cleaned_revenue)
-        OVER(
+        OVER (
             PARTITION BY order_year
             ORDER BY order_date
         ) AS cumulative_revenue,
 
         -- PRODUCT SALES RANK
         DENSE_RANK()
-        OVER(
+        OVER (
             PARTITION BY order_year
             ORDER BY cleaned_revenue DESC
         ) AS revenue_rank,
 
-        -- MOVING AVERAGE
+        -- 7-DAY MOVING AVERAGE
         AVG(cleaned_revenue)
-        OVER(
+        OVER (
             ORDER BY order_date
-            ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+            ROWS BETWEEN 6 PRECEDING
+            AND CURRENT ROW
         ) AS moving_avg_7day_revenue
 
     FROM transformed_data
@@ -180,5 +217,7 @@ final_dataset AS (
 -- =========================================================
 -- 6. FINAL OUTPUT
 -- =========================================================
+
 SELECT *
 FROM final_dataset;
+```
