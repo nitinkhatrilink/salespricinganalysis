@@ -6,7 +6,7 @@ An end-to-end data analytics project built using SQL and Power BI to analyze sal
 
 # Dashboard Preview
 
-![Dashboard Preview]((https://github.com/nitinkhatrilink/salespricinganalysis/blob/main/dashboard.png))
+![Dashboard Preview](https://github.com/nitinkhatrilink/salespricinganalysis/blob/main/dashboard.png)
 
 ---
 
